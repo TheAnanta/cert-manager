@@ -16,9 +16,18 @@ import { Plus } from "lucide-react"
 import { addParticipant } from "@/app/actions/participants"
 import { useState, useActionState } from "react"
 
+type ActionState = {
+    message: string;
+    success?: boolean;
+    errors?: Record<string, string[]>;
+} | null;
+
 export function AddParticipantForm({ eventId }: { eventId: string }) {
     const [open, setOpen] = useState(false)
-    const [state, dispatch] = useActionState(addParticipant.bind(null, eventId), null as any)
+    const [state, dispatch] = useActionState<ActionState, FormData>(
+        addParticipant.bind(null, eventId),
+        null
+    )
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>

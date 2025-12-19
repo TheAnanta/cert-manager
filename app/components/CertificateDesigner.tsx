@@ -103,7 +103,7 @@ const DraggableItem = ({
         return (
             <div style={{
                 fontSize: `${item.fontSize || 16}px`,
-                fontWeight: item.fontWeight as any || 'normal',
+                fontWeight: (item.fontWeight as any) || 'normal',
                 color: item.color || '#000000',
                 // whiteSpace: 'nowrap', // Removed to allow wrapping if width is set
                 width: item.width ? `${item.width}px` : 'auto',

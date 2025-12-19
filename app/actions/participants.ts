@@ -48,7 +48,7 @@ export async function generateCertificates(eventId: string, templateId?: string)
         return { message: "No templates found for this event." }
     }
 
-    // Use provided templateId or fallback to the first one (for backward compat if needed, though UI should enforce)
+    // Use provided templateId or fallback to the first one
     const template = templateId
         ? event.templates.find(t => t.id === templateId)
         : event.templates[0]

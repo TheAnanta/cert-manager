@@ -18,9 +18,8 @@ export async function createDraft(eventId: string, templateId: string, customId?
     try {
         await prisma.certificate.create({
             data: {
-                id: customId || undefined, // undefined lets Prisma use default(cuid()) or I can generate one
+                id: customId || undefined,
                 templateId,
-                // participantId is null
             } as any
         });
     } catch (e) {
