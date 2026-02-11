@@ -7,13 +7,28 @@ type Props = {
 }
 
 export default async function VerifyPage({ searchParams }: Props) {
-    const { id } = await searchParams;
-    if (!id || typeof id !== 'string') {
-        return <div className="p-12 text-center text-red-500">Invalid ID</div>
+    const { id, email } = await searchParams;
+
+    // 1. Validation: Ensure at least one valid search parameter exists
+    if ((!id || typeof id !== 'string') && (!email || typeof email !== 'string')) {
+        return <div className="p-12 text-center text-red-500">Please provide a valid ID or Email</div>
     }
 
-    const certificate = await prisma.certificate.findUnique({
-        where: { id },
+    // 2. Query logic: findFirst allows us to search by non-unique fields like participant email
+    const certificate = await prisma.certificate.findFirst({
+        where: {
+            OR: [
+                { id: typeof id === 'string' ? id : undefined },
+                { 
+                    participant: { 
+                        email: typeof email === 'string' ? email : undefined 
+                    } 
+                }
+            ]
+        },
+        orderBy: {
+            createdAt: 'desc' // Returns the most recent certificate if searching by email
+        },
         include: {
             participant: { include: { event: true } },
             template: { include: { event: true } }
