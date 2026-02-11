@@ -26,9 +26,6 @@ export default async function VerifyPage({ searchParams }: Props) {
                 }
             ]
         },
-        orderBy: {
-            createdAt: 'desc' // Returns the most recent certificate if searching by email
-        },
         include: {
             participant: { include: { event: true } },
             template: { include: { event: true } }
