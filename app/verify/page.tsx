@@ -1,9 +1,59 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import { Metadata } from "next"
 import CertificateView from "./certificate-view"
 
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+    const { id, email } = await searchParams;
+    const certId = typeof id === 'string' ? id : undefined;
+    const userEmail = typeof email === 'string' ? email : undefined;
+
+    if (!certId && !userEmail) return {};
+
+    const certificate = await prisma.certificate.findFirst({
+        where: {
+            OR: [
+                { id: certId },
+                { participant: { email: userEmail } }
+            ]
+        },
+        include: {
+            participant: { include: { event: true } },
+            template: { include: { event: true } }
+        }
+    });
+
+    if (!certificate) return {};
+
+    const { participant, template } = certificate;
+    const event = participant?.event || template.event;
+    const title = participant ? `Certificate of Completion - ${participant.name}` : 'Verified Certificate';
+    const description = `Verified Certificate issued to ${participant?.name || 'Participant'} for ${event?.name || 'Achievement'}. Certificate ID: ${certificate.id}`;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: [
+                {
+                    url: template.imageUrl,
+                    alt: title,
+                }
+            ]
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: [template.imageUrl],
+        }
+    };
 }
 
 export default async function VerifyPage({ searchParams }: Props) {
@@ -50,3 +100,4 @@ export default async function VerifyPage({ searchParams }: Props) {
         />
     )
 }
+
