@@ -79,13 +79,17 @@ export default function CertificateView({ certificate, participant, template, ev
     const scaledWidth = Math.round(800 * scale);
     const scaledHeight = Math.round(certHeight * scale);
 
-    const certName = event?.name || template?.name || 'Certificate of Completion';
-    const orgName = process.env.NEXT_PUBLIC_ORG_NAME || 'The Ananta';
-    const issueDate = certificate?.issuedAt ? new Date(certificate.issuedAt) : (event?.startDate ? new Date(event.startDate) : new Date());
+    const certName = template?.name?.includes("SME") ? "Subject Matter Expert" : event?.name?.includes("CHITTI") ? "Operations Engineer" : event?.name || template?.name || 'Certificate of Completion';
+    const orgName = event?.name?.includes("CHITTI") ? "CHITTI" : process.env.NEXT_PUBLIC_ORG_NAME || 'the ananta studio';
+    
+    const rawIssueDate = template?.name?.includes("SME") ? "2024-03-01T08:19:17.864Z" : event?.name?.includes("CHITTI") ? "2025-10-01T08:19:17.864Z" : certificate?.issuedAt || event?.startDate || new Date();
+    const issueDate = new Date(rawIssueDate);
     const issueYear = issueDate.getFullYear();
     const issueMonth = issueDate.getMonth() + 1;
 
-    const linkedInParams = new URLSearchParams({
+    const isSmeOrChitti = template?.name?.includes("SME") || event?.name?.includes("CHITTI");
+
+    const linkedInParamsObj: Record<string, string> = {
         startTask: 'CERTIFICATION_NAME',
         name: certName,
         organizationName: orgName,
@@ -93,7 +97,14 @@ export default function CertificateView({ certificate, participant, template, ev
         issueMonth: issueMonth.toString(),
         certUrl: certificateUrl,
         certId: certificate.id,
-    });
+    };
+
+    if (isSmeOrChitti) {
+        linkedInParamsObj.expirationYear = '2026';
+        linkedInParamsObj.expirationMonth = '4';
+    }
+
+    const linkedInParams = new URLSearchParams(linkedInParamsObj);
     const linkedInUrl = `https://www.linkedin.com/profile/add?${linkedInParams.toString()}`;
 
     return (
@@ -190,7 +201,7 @@ export default function CertificateView({ certificate, participant, template, ev
                 >
                     <Button className="bg-[#0A66C2] hover:bg-[#004182] text-white gap-2">
                         <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                            <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.74a1.45 1.45 0 1 0 1.45 1.45 1.45 1.45 0 0 0-1.45-1.45Z"/>
+                            <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.74a1.45 1.45 0 1 0 1.45 1.45 1.45 1.45 0 0 0-1.45-1.45Z" />
                         </svg>
                         Add to LinkedIn
                     </Button>
