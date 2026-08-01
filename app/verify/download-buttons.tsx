@@ -6,8 +6,25 @@ import { toPng } from 'html-to-image'
 import jsPDF from 'jspdf'
 import { useState } from 'react'
 
-export function DownloadButtons({ targetId, certificateId }: { targetId: string, certificateId: string }) {
+export function DownloadButtons({ targetId, certificateId, unscaledHeight = 565 }: { targetId: string, certificateId: string, unscaledHeight?: number }) {
     const [downloading, setDownloading] = useState(false)
+
+    const generateImageData = async (element: HTMLElement) => {
+        const height = unscaledHeight || element.offsetHeight || 565
+        return await toPng(element, {
+            cacheBust: true,
+            pixelRatio: 2,
+            width: 800,
+            height: height,
+            style: {
+                transform: 'none',
+                transformOrigin: 'top left',
+                position: 'static',
+                width: '800px',
+                height: `${height}px`
+            }
+        })
+    }
 
     const downloadPNG = async () => {
         const element = document.getElementById(targetId)
@@ -15,7 +32,7 @@ export function DownloadButtons({ targetId, certificateId }: { targetId: string,
 
         setDownloading(true)
         try {
-            const dataUrl = await toPng(element, { cacheBust: true, pixelRatio: 2 })
+            const dataUrl = await generateImageData(element)
             const link = document.createElement('a')
             link.download = `certificate-${certificateId}.png`
             link.href = dataUrl
@@ -33,15 +50,14 @@ export function DownloadButtons({ targetId, certificateId }: { targetId: string,
 
         setDownloading(true)
         try {
-            const dataUrl = await toPng(element, { cacheBust: true, pixelRatio: 2 })
+            const dataUrl = await generateImageData(element)
+            const height = unscaledHeight || element.offsetHeight || 565
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'px',
-                format: [element.offsetWidth, element.offsetHeight] // Match component size
-                // Or standard A4: format: 'a4'
+                format: [800, height]
             })
 
-            // Scaled to fit if using standard format, or custom size
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
@@ -65,3 +81,4 @@ export function DownloadButtons({ targetId, certificateId }: { targetId: string,
         </div>
     )
 }
+
