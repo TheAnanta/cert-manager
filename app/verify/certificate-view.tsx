@@ -96,41 +96,7 @@ export default function CertificateView({ certificate, participant, template, ev
 
     const isSmeOrChitti = template?.name?.includes("SME") || event?.name?.includes("CHITTI");
 
-    const roleDescription = template?.name?.includes("SME") 
-        ? "Subject Matter Expert at CHITTI, responsible for creating course content, curriculum development, and guiding students for exam success."
-        : event?.name?.includes("CHITTI")
-        ? "Operations Engineer at CHITTI, managing exam preparation tools, student success workflows, and platform operations."
-        : `Role in ${event?.name || 'CHITTI'}`;
-
-    const fullDescription = `${roleDescription}\n\nVerified Certificate ID: ${certificate.id}\nVerification Link: ${certificateUrl}`;
-
-    // 1. Add to Experience (Position)
-    const expParamsObj: Record<string, string> = {
-        startTask: 'POSITION',
-        title: certName,
-        name: certName,
-        companyName: orgName,
-        company: orgName,
-        organizationName: orgName,
-        employmentType: 'Internship',
-        employmentTypeChoice: 'INTERNSHIP',
-        isCurrent: 'false',
-        currentlyWorking: 'false',
-        startYear: issueYear.toString(),
-        startMonth: issueMonth.toString(),
-        location: 'Visakhapatnam, Andhra Pradesh, India',
-        locationName: 'Visakhapatnam, Andhra Pradesh, India',
-        locationType: 'ON_SITE',
-        workplaceType: 'ON_SITE',
-        description: fullDescription
-    };
-    if (isSmeOrChitti) {
-        expParamsObj.endYear = '2026';
-        expParamsObj.endMonth = '4';
-    }
-    const linkedInExperienceUrl = `https://www.linkedin.com/profile/add?${new URLSearchParams(expParamsObj).toString()}`;
-
-    // 2. Add to Licenses & Certifications
+    // Add to Licenses & Certifications
     const certParamsObj: Record<string, string> = {
         startTask: 'CERTIFICATION_NAME',
         name: certName,
@@ -146,8 +112,9 @@ export default function CertificateView({ certificate, participant, template, ev
     }
     const linkedInCertUrl = `https://www.linkedin.com/profile/add?${new URLSearchParams(certParamsObj).toString()}`;
 
-    // 3. Share to LinkedIn Feed
-    const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(certificateUrl)}`;
+    // Share Post to LinkedIn Feed with pre-filled text
+    const sharePostText = `Thrilled to receive my ${certName} certificate from ${orgName}! 🎓✨\n\nVerify certificate: ${certificateUrl}`;
+    const linkedInShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(sharePostText)}`;
 
     return (
         <div className="min-h-screen bg-neutral-100 flex flex-col items-center py-6 sm:py-12 px-2 sm:px-4 gap-6 md:gap-8">
@@ -237,37 +204,29 @@ export default function CertificateView({ certificate, participant, template, ev
                 <PrintButton />
                 <DownloadButtons targetId="certificate-container" certificateId={certificate.id} unscaledHeight={certHeight} />
                 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button className="bg-[#0A66C2] hover:bg-[#004182] text-white gap-2">
-                            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.74a1.45 1.45 0 1 0 1.45 1.45 1.45 1.45 0 0 0-1.45-1.45Z" />
-                            </svg>
-                            Add to LinkedIn
-                            <ChevronDown className="h-4 w-4 opacity-80" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center" className="w-56">
-                        <DropdownMenuItem asChild>
-                            <a href={linkedInExperienceUrl} target="_blank" rel="noopener noreferrer" className="cursor-pointer flex items-center gap-2">
-                                <Briefcase className="h-4 w-4 text-[#0A66C2]" />
-                                <span>Add to Experience</span>
-                            </a>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <a href={linkedInCertUrl} target="_blank" rel="noopener noreferrer" className="cursor-pointer flex items-center gap-2">
-                                <Award className="h-4 w-4 text-[#0A66C2]" />
-                                <span>Add to Certifications</span>
-                            </a>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <a href={linkedInShareUrl} target="_blank" rel="noopener noreferrer" className="cursor-pointer flex items-center gap-2">
-                                <Share2 className="h-4 w-4 text-[#0A66C2]" />
-                                <span>Share to Post Feed</span>
-                            </a>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <a
+                    href={linkedInCertUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Button className="bg-[#0A66C2] hover:bg-[#004182] text-white gap-2">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                            <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.74a1.45 1.45 0 1 0 1.45 1.45 1.45 1.45 0 0 0-1.45-1.45Z" />
+                        </svg>
+                        Add to LinkedIn
+                    </Button>
+                </a>
+
+                <a
+                    href={linkedInShareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Button variant="outline" className="border-[#0A66C2] text-[#0A66C2] hover:bg-[#0A66C2]/10 gap-2">
+                        <Share2 className="h-4 w-4" />
+                        Share Post
+                    </Button>
+                </a>
 
                 <Link href="/">
                     <Button variant="outline">Back to Home</Button>
