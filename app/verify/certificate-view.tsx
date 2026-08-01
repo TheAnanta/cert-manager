@@ -96,14 +96,33 @@ export default function CertificateView({ certificate, participant, template, ev
 
     const isSmeOrChitti = template?.name?.includes("SME") || event?.name?.includes("CHITTI");
 
+    const roleDescription = template?.name?.includes("SME") 
+        ? "Subject Matter Expert at CHITTI, responsible for creating course content, curriculum development, and guiding students for exam success."
+        : event?.name?.includes("CHITTI")
+        ? "Operations Engineer at CHITTI, managing exam preparation tools, student success workflows, and platform operations."
+        : `Role in ${event?.name || 'CHITTI'}`;
+
+    const fullDescription = `${roleDescription}\n\nVerified Certificate ID: ${certificate.id}\nVerification Link: ${certificateUrl}`;
+
     // 1. Add to Experience (Position)
     const expParamsObj: Record<string, string> = {
         startTask: 'POSITION',
         title: certName,
+        name: certName,
         companyName: orgName,
+        company: orgName,
+        organizationName: orgName,
+        employmentType: 'Internship',
+        employmentTypeChoice: 'INTERNSHIP',
+        isCurrent: 'false',
+        currentlyWorking: 'false',
         startYear: issueYear.toString(),
         startMonth: issueMonth.toString(),
-        description: `Verified Certificate: ${certificateUrl} (ID: ${certificate.id})`
+        location: 'Visakhapatnam, Andhra Pradesh, India',
+        locationName: 'Visakhapatnam, Andhra Pradesh, India',
+        locationType: 'ON_SITE',
+        workplaceType: 'ON_SITE',
+        description: fullDescription
     };
     if (isSmeOrChitti) {
         expParamsObj.endYear = '2026';
