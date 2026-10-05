@@ -1,4 +1,9 @@
 export const GOOGLE_FONTS = [
+    "Google Sans",
+    "Google Sans Mono",
+    "Google Sans Display",
+    "Funnel Sans",
+    "Funnel Display",
     "Roboto",
     "Open Sans",
     "Space Grotesk",
