@@ -18,6 +18,7 @@ export default function CertificateView({ certificate, participant, template, ev
     // Scaling & Height Logic
     const [scale, setScale] = useState<number>(1);
     const [certHeight, setCertHeight] = useState<number>(565);
+    const [naturalWidth, setNaturalWidth] = useState<number>(800);
     const containerRef = useRef<HTMLDivElement>(null);
     const certRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +42,7 @@ export default function CertificateView({ certificate, participant, template, ev
     const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
         const img = e.currentTarget;
         if (img.naturalWidth && img.naturalHeight) {
+            setNaturalWidth(img.naturalWidth);
             const computedHeight = Math.round(800 * (img.naturalHeight / img.naturalWidth));
             setCertHeight(computedHeight);
         } else if (img.offsetHeight) {
@@ -48,11 +50,30 @@ export default function CertificateView({ certificate, participant, template, ev
         }
     };
 
+    // Inline the template image as a data URL so html-to-image doesn't have to re-fetch it
+    // (its refetch of large / space-containing URLs like "/templates/GDSC Certificate.png"
+    // fails silently and the background gets dropped from the export).
+    const [templateSrc, setTemplateSrc] = useState<string>(template.imageUrl);
     useEffect(() => {
-        if (certRef.current && certRef.current.offsetHeight) {
-            setCertHeight(certRef.current.offsetHeight);
-        }
-    }, []);
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await fetch(template.imageUrl, { cache: 'force-cache' });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const blob = await res.blob();
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+                if (!cancelled) setTemplateSrc(dataUrl);
+            } catch (err) {
+                console.error('Could not inline template image; downloads may miss the background', err);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [template.imageUrl]);
 
     const certificateUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/verify?id=${certificate.id}`;
 
@@ -119,6 +140,12 @@ export default function CertificateView({ certificate, participant, template, ev
     return (
         <div className="min-h-screen bg-neutral-100 flex flex-col items-center py-6 sm:py-12 px-2 sm:px-4 gap-6 md:gap-8">
             {fontsUrl && <link rel="stylesheet" href={fontsUrl} />}
+            <style>{`@media print {
+                @page { size: 800px ${certHeight}px; margin: 0; }
+                html, body { width: 800px; height: ${certHeight}px; margin: 0; background: #fff; }
+                #certificate-container { transform: none !important; width: 800px !important; height: ${certHeight}px !important; border-radius: 0 !important; }
+                * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }`}</style>
 
             {/* Scaled Certificate Wrapper */}
             <div className="w-full flex justify-center items-center overflow-hidden" ref={containerRef}>
@@ -133,7 +160,7 @@ export default function CertificateView({ certificate, participant, template, ev
                     <div
                         id="certificate-container"
                         ref={certRef}
-                        className="bg-white shadow-2xl rounded-lg relative print:shadow-none print:w-[1123px] print:h-[794px] print:max-w-none print:m-0 print:p-0 print:absolute print:top-0 print:left-0 print:transform-none"
+                        className="bg-white shadow-2xl rounded-lg relative print:shadow-none print:max-w-none print:m-0 print:p-0 print:absolute print:top-0 print:left-0 print:transform-none"
                         style={{
                             width: '800px',
                             height: `${certHeight}px`,
@@ -145,9 +172,13 @@ export default function CertificateView({ certificate, participant, template, ev
                         }}
                     >
                         <img
-                            src={template.imageUrl}
+                            src={templateSrc}
                             alt="Certificate"
                             className="w-full h-auto pointer-events-none select-none block"
+                            ref={(img) => {
+                                // onLoad may fire before hydration for cached images
+                                if (img && img.complete) handleImageLoad({ currentTarget: img } as any);
+                            }}
                             onLoad={handleImageLoad}
                             crossOrigin="anonymous"
                         />
@@ -202,7 +233,7 @@ export default function CertificateView({ certificate, participant, template, ev
 
             <div className="flex gap-3 sm:gap-4 flex-wrap justify-center print:hidden px-2">
                 <PrintButton />
-                <DownloadButtons targetId="certificate-container" certificateId={certificate.id} unscaledHeight={certHeight} />
+                <DownloadButtons targetId="certificate-container" certificateId={certificate.id} unscaledHeight={certHeight} naturalWidth={naturalWidth} />
                 
                 <a
                     href={linkedInCertUrl}

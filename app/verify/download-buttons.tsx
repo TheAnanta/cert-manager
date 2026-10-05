@@ -6,14 +6,15 @@ import { toPng } from 'html-to-image'
 import jsPDF from 'jspdf'
 import { useState } from 'react'
 
-export function DownloadButtons({ targetId, certificateId, unscaledHeight = 565 }: { targetId: string, certificateId: string, unscaledHeight?: number }) {
+export function DownloadButtons({ targetId, certificateId, unscaledHeight = 565, naturalWidth = 800 }: { targetId: string, certificateId: string, unscaledHeight?: number, naturalWidth?: number }) {
     const [downloading, setDownloading] = useState(false)
 
     const generateImageData = async (element: HTMLElement) => {
         const height = unscaledHeight || element.offsetHeight || 565
+        // Warm up: html-to-image sometimes skips images on the first pass
+        await Promise.all(Array.from(element.querySelectorAll('img')).map(img => img.decode().catch(() => {})))
         return await toPng(element, {
-            cacheBust: true,
-            pixelRatio: 2,
+            pixelRatio: Math.max(1, naturalWidth / 800), // export at the template's native resolution
             width: 800,
             height: height,
             style: {
@@ -21,7 +22,9 @@ export function DownloadButtons({ targetId, certificateId, unscaledHeight = 565 
                 transformOrigin: 'top left',
                 position: 'static',
                 width: '800px',
-                height: `${height}px`
+                height: `${height}px`,
+                borderRadius: '0',
+                boxShadow: 'none'
             }
         })
     }
@@ -52,10 +55,11 @@ export function DownloadButtons({ targetId, certificateId, unscaledHeight = 565 
         try {
             const dataUrl = await generateImageData(element)
             const height = unscaledHeight || element.offsetHeight || 565
+            const pixelRatio = Math.max(1, naturalWidth / 800)
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'px',
-                format: [800, height]
+                format: [800 * pixelRatio, height * pixelRatio]
             })
 
             const pdfWidth = pdf.internal.pageSize.getWidth();
